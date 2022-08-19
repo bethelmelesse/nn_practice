@@ -21,6 +21,11 @@ class Multi(Operators):
         self.input_2.backward(grad_2)
         return grad_1, grad_2
 
+    def reset_value(self):
+        self.value = None
+        self.input_1.reset_value()
+        self.input_2.reset_value()
+
 
 class Addition(Operators):
     def forward(self):
@@ -36,6 +41,11 @@ class Addition(Operators):
         self.input_2.backward(grad)
 
         return grad
+
+    def reset_value(self):
+        self.value = None
+        self.input_1.reset_value()
+        self.input_2.reset_value()
 
 
 class Subtraction(Operators):
@@ -54,6 +64,11 @@ class Subtraction(Operators):
         self.input_2.backward(grad_2)
         return grad_1, grad_2
 
+    def reset_value(self):
+        self.value = None
+        self.input_1.reset_value()
+        self.input_2.reset_value()
+
 
 class Square(Operators):
     def forward(self):
@@ -66,6 +81,10 @@ class Square(Operators):
         grad = grad * incoming_grad
         self.input_1.backward(grad)
         return grad
+
+    def reset_value(self):
+        self.value = None
+        self.input_1.reset_value()
 
 
 class Var:
@@ -80,9 +99,11 @@ class Var:
 
     def backward(self, incoming_grad):       # have some doubts here
         self.grad = incoming_grad + self.grad
-        print("grad --- ", self.grad)
-        print("variable --- ", self.variable)
+        print("grad --- ", self.grad,"        variable --- ", self.variable)
         return incoming_grad
+
+    def reset_value(self):
+        self.value = None
 
 
 class Num:
@@ -97,6 +118,9 @@ class Num:
     def backward(self, incoming_grad):
         grad = 0
         return grad
+
+    def reset_value(self):
+        return
 
 class Model:
     def __init__(self, x, y, constant):
@@ -114,15 +138,33 @@ class Model:
         self.x = x
         self.y = y
 
-
     def forward(self):
         return self.f.forward()
 
     def backward(self):
         return self.f.backward(1)
 
+    def zero_grad(self):
+        self.x.grad = 0
+        self.y.grad = 0
+        self.f.reset_value()
+
+
 
 my_first_model = Model(2, 3, 2)
+
 print(my_first_model.forward())
-my_first_model.backward()
 print(my_first_model.backward())
+print(my_first_model.x.grad)
+print(my_first_model.y.grad)
+
+my_first_model.x.variable = 4
+my_first_model.y.variable = 5
+
+# my_first_model.x.grad = 0
+# my_first_model.y.grad = 0
+my_first_model.zero_grad()
+print(my_first_model.forward())
+print(my_first_model.backward())
+print(my_first_model.x.grad)
+print(my_first_model.y.grad)
